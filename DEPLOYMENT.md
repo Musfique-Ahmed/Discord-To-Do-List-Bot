@@ -36,7 +36,7 @@
 
 ---
 
-### Option 2: Render (Free Tier)
+### Option 2: Render (Paid - $7/month)
 
 1. **Sign up:** https://render.com/
 2. **New** → **Background Worker**
@@ -47,10 +47,11 @@
    - Start Command: `python todo_bot.py`
 5. **Environment Variables:**
    - Add `DISCORD_TOKEN` with your token
-6. **Create Service**
+6. **Select plan:** Starter ($7/month minimum)
+7. **Create Service**
 
-**Pros:** Free tier available, no credit card needed  
-**Cons:** May sleep after inactivity (upgrade to prevent)
+**Pros:** Reliable, easy to use, good documentation  
+**Cons:** No free tier, starts at $7/month
 
 ---
 
