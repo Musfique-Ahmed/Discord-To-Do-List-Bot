@@ -1,0 +1,11 @@
+services:
+  - type: worker
+    name: discord-todo-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python todo_bot.py
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.0

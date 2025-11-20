@@ -3,6 +3,10 @@ from discord import app_commands
 from discord.ext import commands
 import json
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 DATA_FILE = "todo_data.json"
 
@@ -165,4 +169,9 @@ async def todo_list_switch(interaction: discord.Interaction, list_name: str):
     await interaction.response.send_message(f"🔄 Switched to list: **{list_name}**")
 
 
-bot.run("YOUR_BOT_TOKEN")
+# Get token from environment variable
+TOKEN = os.getenv("DISCORD_TOKEN")
+if not TOKEN:
+    raise ValueError("DISCORD_TOKEN not found in environment variables. Check your .env file.")
+
+bot.run(TOKEN)
