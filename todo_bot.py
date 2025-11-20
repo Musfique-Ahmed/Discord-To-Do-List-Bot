@@ -49,8 +49,11 @@ async def on_ready():
 
 # -------------------- COMMANDS --------------------
 
+# Create command group for /todo
+todo_group = app_commands.Group(name="todo", description="Manage your to-do lists")
+
 # /todo add
-@bot.tree.command(name="todo_add", description="Add a task to the current list.")
+@todo_group.command(name="add", description="Add a task to the current list.")
 async def todo_add(interaction: discord.Interaction, task: str):
     server = ensure_server(interaction.guild_id)
     lst = server["current_list"]
@@ -60,8 +63,8 @@ async def todo_add(interaction: discord.Interaction, task: str):
     await interaction.response.send_message(f"✅ Added task: **{task}** to list **{lst}**")
 
 
-# /todo add_bulk
-@bot.tree.command(name="todo_add_bulk", description="Add multiple tasks separated by semicolons.")
+# /todo add-bulk
+@todo_group.command(name="add-bulk", description="Add multiple tasks separated by semicolons.")
 async def todo_add_bulk(interaction: discord.Interaction, tasks: str):
     server = ensure_server(interaction.guild_id)
     lst = server["current_list"]
@@ -79,7 +82,7 @@ async def todo_add_bulk(interaction: discord.Interaction, tasks: str):
 
 
 # /todo list
-@bot.tree.command(name="todo_list", description="Show the current todo list.")
+@todo_group.command(name="list", description="Show the current todo list.")
 async def todo_list(interaction: discord.Interaction):
     server = ensure_server(interaction.guild_id)
     lst = server["current_list"]
@@ -98,37 +101,37 @@ async def todo_list(interaction: discord.Interaction):
 
 
 # /todo check
-@bot.tree.command(name="todo_check", description="Mark a task as done.")
-async def todo_check(interaction: discord.Interaction, index: int):
+@todo_group.command(name="check", description="Mark a task as done.")
+async def todo_check(interaction: discord.Interaction, task_number: int):
     server = ensure_server(interaction.guild_id)
     lst = server["current_list"]
 
     items = server["lists"][lst]
-    if 1 <= index <= len(items):
-        items[index - 1]["done"] = True
+    if 1 <= task_number <= len(items):
+        items[task_number - 1]["done"] = True
         save_data(data)
-        await interaction.response.send_message(f"✔️ Marked task **#{index}** as complete.")
+        await interaction.response.send_message(f"✔️ Marked task **#{task_number}** as complete.")
     else:
         await interaction.response.send_message("❌ Invalid task number.")
 
 
 # /todo uncheck
-@bot.tree.command(name="todo_uncheck", description="Mark a task as not done.")
-async def todo_uncheck(interaction: discord.Interaction, index: int):
+@todo_group.command(name="uncheck", description="Mark a task as not done.")
+async def todo_uncheck(interaction: discord.Interaction, task_number: int):
     server = ensure_server(interaction.guild_id)
     lst = server["current_list"]
 
     items = server["lists"][lst]
-    if 1 <= index <= len(items):
-        items[index - 1]["done"] = False
+    if 1 <= task_number <= len(items):
+        items[task_number - 1]["done"] = False
         save_data(data)
-        await interaction.response.send_message(f"❌ Unchecked task **#{index}**.")
+        await interaction.response.send_message(f"❌ Unchecked task **#{task_number}**.")
     else:
         await interaction.response.send_message("❌ Invalid task number.")
 
 
 # /todo clear
-@bot.tree.command(name="todo_clear", description="Clear the current list.")
+@todo_group.command(name="clear", description="Clear the current list.")
 async def todo_clear(interaction: discord.Interaction):
     server = ensure_server(interaction.guild_id)
     lst = server["current_list"]
@@ -139,34 +142,61 @@ async def todo_clear(interaction: discord.Interaction):
     await interaction.response.send_message(f"🗑 Cleared list **{lst}**")
 
 
-# /todo list_create
-@bot.tree.command(name="todo_list_create", description="Create a new todo list.")
-async def todo_list_create(interaction: discord.Interaction, list_name: str):
+# /todo create-list
+@todo_group.command(name="create-list", description="Create a new todo list.")
+async def todo_list_create(interaction: discord.Interaction, name: str):
     server = ensure_server(interaction.guild_id)
 
-    if list_name in server["lists"]:
+    if name in server["lists"]:
         await interaction.response.send_message("⚠️ List already exists.")
         return
 
-    server["lists"][list_name] = []
+    server["lists"][name] = []
     save_data(data)
 
-    await interaction.response.send_message(f"📁 Created new list: **{list_name}**")
+    await interaction.response.send_message(f"📁 Created new list: **{name}**")
 
 
-# /todo list_switch
-@bot.tree.command(name="todo_list_switch", description="Switch to a different list.")
-async def todo_list_switch(interaction: discord.Interaction, list_name: str):
+# /todo switch
+@todo_group.command(name="switch", description="Switch to a different list.")
+async def todo_list_switch(interaction: discord.Interaction, name: str):
     server = ensure_server(interaction.guild_id)
 
-    if list_name not in server["lists"]:
+    if name not in server["lists"]:
         await interaction.response.send_message("❌ List does not exist.")
         return
 
-    server["current_list"] = list_name
+    server["current_list"] = name
     save_data(data)
 
-    await interaction.response.send_message(f"🔄 Switched to list: **{list_name}**")
+    await interaction.response.send_message(f"🔄 Switched to list: **{name}**")
+
+
+# /todo delete-list
+@todo_group.command(name="delete-list", description="Delete a to-do list.")
+async def todo_delete_list(interaction: discord.Interaction, name: str):
+    server = ensure_server(interaction.guild_id)
+
+    if name == "default":
+        await interaction.response.send_message("❌ Cannot delete the default list.")
+        return
+
+    if name not in server["lists"]:
+        await interaction.response.send_message("❌ List does not exist.")
+        return
+
+    del server["lists"][name]
+    
+    # Switch to default if we deleted the current list
+    if server["current_list"] == name:
+        server["current_list"] = "default"
+    
+    save_data(data)
+    await interaction.response.send_message(f"🗑 Deleted list: **{name}**")
+
+
+# Add the group to the bot
+bot.tree.add_command(todo_group)
 
 
 # Get token from environment variable
